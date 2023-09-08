@@ -165,17 +165,18 @@ public class EventManager {
 	public static void main(String[] args) {
 
 		int count;
+		Event[] events=null;
 
 		try {
 			count = getTotalEvents(INCIDENTS_FILE);
+			// TODO 'events' could be an object-level variable. Then it would not
+			// TODO have to be passed to each method that uses it.
+			events = loadArrays(INCIDENTS_FILE);
+
 		}	catch (FileNotFoundException e) {
 			System.out.println("File "+INCIDENTS_FILE.getName()+" is missing.");
 			System.exit(1);
 		}
-
-		// TODO 'events' could be an object-level variable. Then it would not
-		// TODO have to be passed to each method that uses it.
-		Event[] events = loadArrays(INCIDENTS_FILE);
 
 		System.out.println(getEventStatistics(events));
 
