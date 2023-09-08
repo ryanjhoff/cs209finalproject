@@ -19,13 +19,14 @@ public class Event {
 		try (Scanner dateScanner = new Scanner(date)) {
 			String date = dateScanner.next();
 			String time = dateScanner.next();
-			sb.append("Date: " + date);
-			sb.append("Time: " + time);
+			sb.append("\nDate: " + date);
+			sb.append("\nTime: " + time);
 		}
 
-		sb.append("Address: " + address);
-		sb.append("Sector: " + sector);
-		sb.append("Zone: " + zone);
+		sb.append("\nAddress: " + address);
+		sb.append("\nSector: " + sector);
+		sb.append("\nZone: " + zone);
+		sb.append("\n");
 		return sb.toString();
 	}
 	

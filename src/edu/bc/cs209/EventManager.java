@@ -2,9 +2,12 @@ package edu.bc.cs209;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
+import java.util.TreeSet;
 
 /*
  * Database of security events
@@ -13,61 +16,38 @@ public class EventManager {
 	private static final File INCIDENTS_FILE = new File("Seattle_911_Incidents.csv");
 
 	/**
-	 * Returns the number of the events in the input data
-	 * @param fileName a .csv file containing the events, one per line
-	 * @return the number of events in the file
-	 * @throws FileNotFoundException if the file does not exist
-	 */
-	public static int getTotalEvents(File fileName) throws FileNotFoundException {
-
-		int count = 0;
-
-		try (Scanner fileScanner = new Scanner(fileName)) { // 'try with resource' ensures the scanner is closed
-
-			fileScanner.nextLine();
-			while (fileScanner.hasNextLine()) {
-				count++;
-				fileScanner.nextLine();
-			}
-
-			return count;
-		}
-	}
-
-	/**
 	 * Load the database of events from a .csv file into an array
 	 * @param fileName the name of the .csv file containing the events
 	 * @return an array of Event objects, each containing one event from the file
 	 * @throws FileNotFoundException if the file does not exist
 	 */
 	public static Event[] loadArrays(File fileName) throws FileNotFoundException {
-		int count = getTotalEvents(fileName); // TODO to avoid reading the file twice, use a mutable List instead of an array
-
-		Event[] result = new Event[count];
+		List<Event> events = new ArrayList<Event>();
 
 		try (Scanner fileScanner = new Scanner(fileName)) {
 
-			fileScanner.nextLine(); // TODO is this needed?
+			fileScanner.nextLine(); //eat the header row
 
-			for (int i=0; i<count; i++) {
+			while (fileScanner.hasNext()) {
 
 				String line = fileScanner.nextLine();
-				Scanner lineScanner = new Scanner(line);
+				try(Scanner lineScanner = new Scanner(line)) {
 
-				lineScanner.useDelimiter(",");
+					lineScanner.useDelimiter(",");
 
-				Event event = new Event();
-				event.setId(lineScanner.nextInt());
-				event.setType(lineScanner.next());
-				event.setDate(lineScanner.next());
-				event.setAddress(lineScanner.next());
-				event.setSector(lineScanner.next());
-				event.setZone(lineScanner.next());
-				result[i] = event;
+					Event event = new Event();
+					event.setId(lineScanner.nextInt());
+					event.setType(lineScanner.next());
+					event.setDate(lineScanner.next());
+					event.setAddress(lineScanner.next());
+					event.setSector(lineScanner.next());
+					event.setZone(lineScanner.next());
+					events.add(event);
+				}
 			}
 		}
 
-		return result;
+		return (Event[])events.toArray(new Event[0]);
 	}
 
 	/**
@@ -101,7 +81,7 @@ public class EventManager {
 		sb.append("2015: " + count2015 + " events");
 		sb.append("\n2016: " + count2016 + " events");
 		sb.append("\n2017: " + count2017 + " events");
-		sb.append("Total Events: " + events.length);
+		sb.append("\nTotal Events: " + events.length);
 
 		return sb.toString();
 	}
@@ -161,14 +141,28 @@ public class EventManager {
 			System.out.println(count + " events.");
 		}
 	}
+	
+	public static Set<String> getDistinctTypes(Event[] events) {
+		Set<String> result = new TreeSet<String>();
+		for (Event event: events) {
+			result.add(event.getType());
+		}
+		return result;
+	}
+
+	public static Set<String> getDistinctSectors(Event[] events) {
+		Set<String> result = new TreeSet<String>();
+		for (Event event: events) {
+			result.add(event.getSector());
+		}
+		return result;
+	}
 
 	public static void main(String[] args) {
 
-		int count;
 		Event[] events=null;
 
 		try {
-			count = getTotalEvents(INCIDENTS_FILE);
 			// TODO 'events' could be an object-level variable. Then it would not
 			// TODO have to be passed to each method that uses it.
 			events = loadArrays(INCIDENTS_FILE);
@@ -179,6 +173,9 @@ public class EventManager {
 		}
 
 		System.out.println(getEventStatistics(events));
+		
+		Set<String> types = getDistinctTypes(events);
+		Set<String> sectors = getDistinctSectors(events);
 
 		try (Scanner userScanner = new Scanner(System.in)) { // try-with-resources ensures the resource is closed
 			int option = 0;
@@ -209,10 +206,10 @@ public class EventManager {
 
 				} else if (option == 2) {
 
-					System.out.print("Enter keyword for type: ");
+					System.out.print("Enter keyword for type ("+types+"):");
 					String userType = userScanner.next();
 
-					System.out.print("Enter Sector: ");
+					System.out.print("Enter Sector ("+sectors+"): ");
 					String userSector = userScanner.next();
 
 					printEventsTypes(userType, userSector, events);
